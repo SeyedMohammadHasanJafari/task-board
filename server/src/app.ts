@@ -10,6 +10,8 @@ import cardRoutes from './routes/cardRoutes.js';
 import { notFoundHandler } from './middlewares/notFoundHandler.js';
 import { errorHandler } from './middlewares/errorHandler.js';
 
+import { isOriginAllowed } from './config/cors.js';
+
 export function createApp(): Application {
   const app = express();
 
@@ -21,7 +23,13 @@ export function createApp(): Application {
   // CORS configuration
   app.use(
     cors({
-      origin: [ENV.CLIENT_URL, 'http://localhost:5173', 'http://127.0.0.1:5173'],
+      origin: (origin, callback) => {
+        if (isOriginAllowed(origin)) {
+          callback(null, true);
+        } else {
+          callback(null, false);
+        }
+      },
       credentials: true,
       methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
       allowedHeaders: ['Content-Type', 'Authorization'],

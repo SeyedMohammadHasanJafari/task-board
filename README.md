@@ -144,6 +144,48 @@ Visit `http://localhost:5173` in your browser.
 
 ---
 
+## Cloud Deployment (Vercel & Persistent Backend)
+
+Because TaskFlow leverages **stateful WebSockets (Socket.io room presence)** and **Yjs CRDT binary WebSockets (`/yjs`)**, the industry-standard architecture separates the static frontend from the stateful real-time backend:
+
+1. **Frontend Client:** Deployed to **Vercel** (Global Edge CDN, automatic SSL, SPA rewrites).
+2. **Backend Server:** Deployed to **Render**, **Railway**, **Fly.io**, or any standard VPS (Persistent Node.js environment supporting long-lived WebSocket connections).
+3. **Database:** Hosted on **MongoDB Atlas** (Free tier M0 cluster).
+
+### Step 1: Set up Free MongoDB Atlas
+1. Create a free cluster on [MongoDB Atlas](https://www.mongodb.com/cloud/atlas).
+2. Under **Network Access**, add `0.0.0.0/0` (allow access from cloud providers).
+3. Copy your connection string: `mongodb+srv://<user>:<password>@cluster0.mongodb.net/task-board?retryWrites=true&w=majority`.
+
+### Step 2: Deploy Backend (e.g., Render / Railway)
+1. Link your GitHub repository to [Render.com](https://render.com) as a **Web Service**.
+2. Settings:
+   - **Root Directory:** `server`
+   - **Build Command:** `npm run build`
+   - **Start Command:** `npm start`
+3. Set Environment Variables:
+   - `NODE_ENV=production`
+   - `PORT=5000`
+   - `MONGODB_URI=<Your MongoDB Atlas Connection String>`
+   - `JWT_SECRET=<A secure random secret>`
+   - `CLIENT_URL=https://<your-app>.vercel.app`
+4. Copy your backend service URL (e.g., `https://taskflow-api.onrender.com`).
+
+### Step 3: Deploy Frontend on Vercel
+1. Import your GitHub repository into [Vercel](https://vercel.com).
+2. Configure Project:
+   - **Framework Preset:** Vite
+   - **Root Directory:** `client` (or `./` using the included `vercel.json`)
+   - **Build Command:** `npm run build`
+   - **Output Directory:** `dist`
+3. Add Environment Variables in Vercel:
+   - `VITE_API_URL=https://<your-backend-url>/api`
+   - `VITE_SOCKET_URL=https://<your-backend-url>`
+   - `VITE_WS_URL=wss://<your-backend-url>`
+4. Click **Deploy**. Vercel will build the frontend and serve it at `https://<your-app>.vercel.app`.
+
+---
+
 ## Production Deployment via Docker Compose
 
 The project includes an optimized multi-stage `docker-compose.yml` configuration:

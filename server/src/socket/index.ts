@@ -33,10 +33,18 @@ export function getIO(): SocketIOServer | null {
   return globalIO;
 }
 
+import { isOriginAllowed } from '../config/cors.js';
+
 export function setupSocketServer(httpServer: HTTPServer): SocketIOServer {
   const io = new SocketIOServer(httpServer, {
     cors: {
-      origin: [ENV.CLIENT_URL, 'http://localhost:5173', 'http://127.0.0.1:5173'],
+      origin: (origin, callback) => {
+        if (isOriginAllowed(origin)) {
+          callback(null, true);
+        } else {
+          callback(new Error('CORS origin rejected'));
+        }
+      },
       methods: ['GET', 'POST'],
       credentials: true,
     },

@@ -4,7 +4,13 @@ let socket: Socket | null = null;
 
 export function getSocket(): Socket {
   if (!socket) {
-    socket = io({
+    const socketUrl =
+      import.meta.env.VITE_SOCKET_URL ||
+      (import.meta.env.VITE_API_URL
+        ? import.meta.env.VITE_API_URL.replace(/\/api\/?$/, '')
+        : undefined);
+
+    socket = io(socketUrl || window.location.origin, {
       path: '/socket.io',
       transports: ['websocket', 'polling'],
       autoConnect: true,
@@ -14,15 +20,15 @@ export function getSocket(): Socket {
     });
 
     socket.on('connect', () => {
-      console.log('⚡ [Socket.io Client] Connected with ID:', socket?.id);
+      console.log('[socket] Connected with ID:', socket?.id);
     });
 
     socket.on('disconnect', (reason) => {
-      console.log('⚡ [Socket.io Client] Disconnected:', reason);
+      console.log('[socket] Disconnected:', reason);
     });
 
     socket.on('connect_error', (error) => {
-      console.warn('⚡ [Socket.io Client] Connection Error:', error.message);
+      console.warn('[socket] Connection Error:', error.message);
     });
   }
 

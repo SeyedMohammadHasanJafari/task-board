@@ -324,11 +324,17 @@ const TipTapEditorInner: React.FC<EditorInnerProps> = ({ cardId, ydoc, provider 
 export const CollaborativeEditor: React.FC<CollaborativeEditorProps> = ({ cardId }) => {
   const [session, setSession] = useState<{ ydoc: Y.Doc; provider: WebsocketProvider } | null>(null);
 
-  // Manage Y.Doc and WebsocketProvider lifecycle cleanly for cardId
   useEffect(() => {
     const doc = new Y.Doc();
+    const customWsBase =
+      import.meta.env.VITE_WS_URL ||
+      (import.meta.env.VITE_API_URL
+        ? import.meta.env.VITE_API_URL.replace(/^http/, 'ws').replace(/\/api\/?$/, '')
+        : undefined);
+
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const wsUrl = `${protocol}//${window.location.host}/yjs`;
+    const fallbackBase = `${protocol}//${window.location.host}`;
+    const wsUrl = `${customWsBase || fallbackBase}/yjs`;
 
     const wsProvider = new WebsocketProvider(wsUrl, `card-${cardId}`, doc, {
       connect: true,
